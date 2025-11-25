@@ -126,10 +126,31 @@ def main():
     st.title("🍌 Nano Banana Pro Image Translator")
     st.markdown("### Select an image, recognize text, and reproduce it in a target language.")
 
-    # Load API Key from environment
-    api_key = os.getenv("GOOGLE_API_KEY")
+    # Load API Key from Streamlit secrets (for cloud) or environment (for local)
+    api_key = None
+    
+    # Try Streamlit secrets first (for Streamlit Cloud deployment)
+    try:
+        if hasattr(st, 'secrets') and 'GOOGLE_API_KEY' in st.secrets:
+            api_key = st.secrets['GOOGLE_API_KEY']
+    except Exception:
+        pass
+    
+    # Fall back to environment variable (for local development)
     if not api_key:
-        st.error("GOOGLE_API_KEY not found in environment variables. Please check your .env file.")
+        api_key = os.getenv("GOOGLE_API_KEY")
+    
+    if not api_key:
+        st.error("GOOGLE_API_KEY not found. Please configure it in Streamlit secrets (for cloud) or .env file (for local).")
+        st.info("""
+        **For Streamlit Cloud:**
+        1. Go to your app settings
+        2. Click on 'Secrets' in the left sidebar
+        3. Add: `GOOGLE_API_KEY = "your-api-key-here"`
+        
+        **For Local Development:**
+        Create a `.env` file with: `GOOGLE_API_KEY=your-api-key-here`
+        """)
         return
 
     init_gemini(api_key)
